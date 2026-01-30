@@ -17,7 +17,7 @@ async function loadSlots() {
 
         // PPA 2: 使用 map 和 join 动态生成 HTML 块
         container.innerHTML = data.map(slot => `
-            <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; background-color: #f9f9f9;">
+            <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; background-color: #632525;">
                 <p><strong>Slot ID:</strong> ${slot.id}</p>
                 <p><strong>Time:</strong> ${slot.startTime} to ${slot.endTime}</p>
                 <p><strong>Status:</strong> 
