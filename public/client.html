@@ -1,0 +1,39 @@
+// client.js
+console.log("client.js loaded");
+
+async function loadAvailableSlots() {
+  console.log("loadAvailableSlots() called");
+  
+  try {
+    console.log("Fetching /api/slots...");
+    const response = await fetch("/api/slots");
+    const data = await response.json();
+    
+    console.log("Data received:", data);
+    
+    // 只显示可用的时间段
+    const availableSlots = data.filter(slot => slot.status === 'available');
+    console.log("Available slots:", availableSlots);
+    
+    const container = document.getElementById('slots-display');
+    if (availableSlots.length === 0) {
+      container.innerHTML = '<p>No available slots at this time.</p>';
+    } else {
+      container.innerHTML = availableSlots.map(slot => 
+        `<div class="slot">
+          <p><strong>Slot #${slot.id}</strong></p>
+          <p><strong>Time:</strong> ${slot.startTime} to ${slot.endTime}</p>
+          <button onclick="alert('Booking will be available in future assignment!')">Book This Slot</button>
+        </div>`
+      ).join('');
+    }
+    
+    console.log("Slots displayed successfully");
+  } catch (error) {
+    console.error("Fetch error:", error);
+    document.getElementById('slots-display').innerHTML = 
+      '<p style="color: red;">Error loading slots. Check console for details.</p>';
+  }
+}
+
+loadAvailableSlots();
