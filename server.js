@@ -1,6 +1,6 @@
 import http from "http";
 import fs from "fs";
-import url from "url";  // 新增：需要解析查询参数
+import url from "url";  // add new one, from ?startTime=...&endTime=...
 
 console.log("=== Starting server.js ===");
 
@@ -37,7 +37,7 @@ const slots = [
   }
 ];
 
-// 新增：辅助函数
+// new function: waiting for JSON response
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { "Content-Type": "application/json" });
   res.end(JSON.stringify(payload));
@@ -55,7 +55,7 @@ function validateSlotTimes(startTime, endTime) {
     return { ok: false, message: "endTime is required" };
   }
   
-  // Bonus: 验证时间格式和顺序
+  // ** verify time slot and order,  verify endTime is after startTime
   const start = new Date(startTime);
   const end = new Date(endTime);
   
@@ -89,25 +89,25 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 新增：POST /api/slots
+  // add : POST /api/slots
   if (path === "/api/slots" && req.method === "POST") {
     const startTime = query.startTime;
     const endTime = query.endTime;
 
-    // 验证输入
+    // verify input
     const result = validateSlotTimes(startTime, endTime);
     if (!result.ok) {
       sendJson(res, 400, { error: result.message });
       return;
     }
 
-    // 检查重复
+    // **verify duplicate
     if (isDuplicate(startTime, endTime)) {
       sendJson(res, 409, { error: "Duplicate slot" });
       return;
     }
 
-    // 创建新 slot
+    // create new slot
     const slot = {
       id: nextId(),
       startTime: startTime,
@@ -121,7 +121,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 原有的静态文件服务
+  // original format doc
   let filePath = "./public/index.html";
   let contentType = "text/html";
 

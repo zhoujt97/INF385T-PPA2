@@ -1,6 +1,7 @@
 // provider.js - PPA3 版本
 // 使用 XMLHttpRequest（符合 PPA3 要求，不使用 async/await）
 
+<<<<<<< HEAD
 function setMessage(text, kind) {
   const p = document.getElementById("message");
   p.textContent = text;
@@ -10,6 +11,26 @@ function setMessage(text, kind) {
   setTimeout(() => {
     p.style.display = "none";
   }, 3000);
+=======
+        // PPA 2: 使用 map 和 join 动态生成 HTML 块
+        container.innerHTML = data.map(slot => `
+            <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; background-color: #632525;">
+                <p><strong>Slot ID:</strong> ${slot.id}</p>
+                <p><strong>Time:</strong> ${slot.startTime} to ${slot.endTime}</p>
+                <p><strong>Status:</strong> 
+                    <span style="color: ${slot.status === 'available' ? 'green' : 'red'}; font-weight: bold;">
+                        ${slot.status}
+                    </span>
+                </p>
+            </div>
+        `).join('');
+        
+        console.log("Slots rendered successfully!");
+    } catch (error) {
+        console.error("Fetch error:", error);
+        document.getElementById('slots-display').innerHTML = "<p style='color: red;'>Error loading data. Check console.</p>";
+    }
+>>>>>>> eb69ad98aa97d7a651df25d2215e032305736353
 }
 
 function addSlotRow(slot) {
