@@ -1,5 +1,6 @@
 import http from "http";
 import fs from "fs";
+import url from "url";  // 新增：需要解析查询参数
 
 console.log("=== Starting server.js ===");
 
@@ -36,15 +37,91 @@ const slots = [
   }
 ];
 
+// 新增：辅助函数
+function sendJson(res, statusCode, payload) {
+  res.writeHead(statusCode, { "Content-Type": "application/json" });
+  res.end(JSON.stringify(payload));
+}
+
+function nextId() {
+  return slots.length > 0 ? Math.max(...slots.map(s => s.id)) + 1 : 1;
+}
+
+function validateSlotTimes(startTime, endTime) {
+  if (typeof startTime !== "string" || startTime.trim().length === 0) {
+    return { ok: false, message: "startTime is required" };
+  }
+  if (typeof endTime !== "string" || endTime.trim().length === 0) {
+    return { ok: false, message: "endTime is required" };
+  }
+  
+  // Bonus: 验证时间格式和顺序
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return { ok: false, message: "Invalid date format" };
+  }
+  
+  if (end <= start) {
+    return { ok: false, message: "endTime must be after startTime" };
+  }
+  
+  return { ok: true, message: "" };
+}
+
+function isDuplicate(startTime, endTime) {
+  return slots.some(slot => 
+    slot.startTime === startTime && slot.endTime === endTime
+  );
+}
+
 const server = http.createServer((req, res) => {
   console.log("Request:", req.method, req.url);
 
-  if (req.url === "/api/slots" && req.method === "GET") {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify(slots));
+  const parsedUrl = url.parse(req.url, true);
+  const path = parsedUrl.pathname;
+  const query = parsedUrl.query;
+
+  // GET /api/slots
+  if (path === "/api/slots" && req.method === "GET") {
+    sendJson(res, 200, slots);
     return;
   }
 
+  // 新增：POST /api/slots
+  if (path === "/api/slots" && req.method === "POST") {
+    const startTime = query.startTime;
+    const endTime = query.endTime;
+
+    // 验证输入
+    const result = validateSlotTimes(startTime, endTime);
+    if (!result.ok) {
+      sendJson(res, 400, { error: result.message });
+      return;
+    }
+
+    // 检查重复
+    if (isDuplicate(startTime, endTime)) {
+      sendJson(res, 409, { error: "Duplicate slot" });
+      return;
+    }
+
+    // 创建新 slot
+    const slot = {
+      id: nextId(),
+      startTime: startTime,
+      endTime: endTime,
+      status: "available"
+    };
+
+    slots.push(slot);
+    console.log("New slot created:", slot);
+    sendJson(res, 201, slot);
+    return;
+  }
+
+  // 原有的静态文件服务
   let filePath = "./public/index.html";
   let contentType = "text/html";
 
